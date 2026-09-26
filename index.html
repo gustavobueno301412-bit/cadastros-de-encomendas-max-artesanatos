@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📦 Cadastro de Encomendas 📦</title>
+    <style>
+        :root {
+            --primary-color: #4a3525;
+            --primary-dark: #2c1d11;
+            --card-bg: #ffffff;
+            --bg-color: #fdfbf7;
+            --white: #ffffff;
+            --text-color: #333333;
+            --success-color: #198754;
+            --warning-color: #ffc107;
+            --info-blue: #0d6efd;
+            --dark-black: #212529;
+            --danger-color: #b71c1c;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: var(--primary-color);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        h1.main-title {
+            color: var(--white);
+            text-align: center;
+            font-size: 26px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .section-card {
+            background-color: var(--card-bg);
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .section-title {
+            color: var(--white);
+            background-color: var(--primary-dark);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 16px;
+            margin-bottom: 15px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--primary-dark);
+            font-size: 14px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d4c5b9;
+            border-radius: 4px;
+            background-color: var(--white);
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+            text-align: center;
+            transition: opacity 0.2s;
+            color: white;
+        }
+
+        .btn:hover { opacity: 0.9; }
+
+        .btn-pesquisar { background-color: var(--info-blue); width: 130px; }
+        .btn-buscar-item { background-color: var(--info-blue); width: 100%; }
+        .btn-adicionar { background-color: var(--info-blue); width: 100%; margin-top: 10px; }
+        .btn-salvar { background-color: var(--success-color); flex: 1; }
+        .btn-limpar { background-color: var(--warning-color); color: #000; flex: 1; }
+        .btn-excluir { background-color: var(--danger-color); flex: 1; }
+        .btn-pdf { background-color: var(--dark-black); width: 100%; margin-top: 10px; }
+        .btn-whatsapp { background-color: var(--success-color); color: white; flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; border-radius: 4px; padding: 10px; font-weight: bold;}
+        .btn-caixa { background-color: var(--info-blue); width: 100%; margin-top: 10px; }
+
+        .actions-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background-color: white;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        th, td {
+            border: 1px solid #d4c5b9;
+            padding: 8px;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        th {
+            background-color: var(--primary-dark);
+            color: white;
+        }
+
+        .total-container {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: right;
+            background-color: var(--white);
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            color: var(--primary-dark);
+        }
+
+        .trash-btn {
+            background: none;
+            border: none;
+            color: #b71c1c;
+            cursor: pointer;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1 class="main-title">📦 Cadastro de Encomendas 📦</h1>
+
+        <!-- Consultar com Datalist para Clientes -->
+        <div class="section-card">
+            <div class="form-group">
+                <label>Consultar (Nome do Cliente):</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="filtroCliente" list="listaClientes" placeholder="Digite ou selecione o cliente..." autocomplete="off">
+                    <datalist id="listaClientes">
+                        <!-- Clientes salvos carregados dinamicamente -->
+                    </datalist>
+                    <button type="button" class="btn btn-pesquisar" onclick="consultarEncomenda()">Pesquisar 🔍</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informações do Cliente -->
+        <div class="section-card">
+            <div class="section-title">Informações do Cliente 🙋‍♂️</div>
+      
+            <div class="form-group">
+                <label>Cliente:</label>
+                <input type="text" id="cliente" placeholder="Nome completo do cliente">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>CEP:</label>
+                    <input type="text" id="cep" placeholder="00000-000" maxlength="9" onblur="buscarCep()">
+                </div>
+                <div class="form-group">
+                    <label>Tipo:</label>
+                    <select id="tipo">
+                        <option value="">Selecione...</option>
+                        <option value="Casa">Casa</option>
+                        <option value="Apartamento">Apartamento</option>
+                        <option value="Loja">Loja</option>
+                        <option value="Comércio">Comércio</option>
+                        <option value="Sítio">Sítio</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Rua:</label>
+                <input type="text" id="rua" placeholder="Nome da rua">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group" style="flex: 0.5;">
+                    <label>Número:</label>
+                    <input type="text" id="numero" placeholder="Nº">
+                </div>
+                <div class="form-group" style="flex: 1.2;">
+                    <label>Bairro:</label>
+                    <input type="text" id="bairro" placeholder="Bairro">
+                </div>
+                <div class="form-group" style="flex: 1.3;">
+                    <label>Cidade:</label>
+                    <input type="text" id="cidade" placeholder="Cidade">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Complemento:</label>
+                <input type="text" id="complemento" placeholder="Apto, Bloco...">
+            </div>
+
+            <div class="form-group">
+                <label>Ponto de Referência:</label>
+                <input type="text" id="referencia" placeholder="Próximo a...">
+            </div>
+        </div>
+
+        <!-- Informações Data e Hora -->
+        <div class="section-card">
+            <div class="section-title">Informações Data e Hora 📆</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Data Atual:</label>
+                    <input type="date" id="dataAtual" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Horário Atual:</label>
+                    <input type="time" id="horarioAtual" readonly>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Data de Entrega:</label>
+                    <input type="date" id="dataEntrega">
+                </div>
+                <div class="form-group">
+                    <label>Horário de Entrega:</label>
+                    <input type="time" id="horarioEntrega">
+                </div>
+            </div>
+        </div>
+
+        <!-- Informações do Produto -->
+        <div class="section-card">
+            <div class="section-title">Informações do Produto 📦</div>
+            <div class="form-row">
+                <div class="form-group" style="flex: 2;">
+                    <label>Cód / Produto:</label>
+                    <input type="text" id="codProduto" list="listaProdutos" placeholder="Digite ou selecione o produto..." autocomplete="off">
+                    <datalist id="listaProdutos">
+                        <!-- Itens carregados dinamicamente da aba Produtos -->
+                    </datalist>
+                </div>
+                <div class="form-group" style="flex: 1; display: flex; align-items: flex-end;">
+                    <button type="button" class="btn btn-buscar-item" onclick="buscarProduto()">Buscar Item 🔍</button>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Quant. Estoque:</label>
+                    <input type="text" id="quantEstoque" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Valor Unitário (R$):</label>
+                    <input type="number" id="valorUnitario" step="0.01" oninput="calcularTotalItem()">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Quant. Vendido:</label>
+                    <input type="number" id="quantVendido" value="1" min="1" oninput="calcularTotalItem()">
+                </div>
+                <div class="form-group">
+                    <label>Total do Item (R$):</label>
+                    <input type="number" id="totalItem" step="0.01">
+                </div>
+            </div>
+
+            <button type="button" class="btn btn-adicionar" onclick="adicionarProdutoTabela()">ADICIONAR PRODUTO 🛒</button>
+        </div>
+
+        <!-- Tabela de Itens -->
+        <div class="section-card">
+            <div class="section-title">Itens Comprados 🛍️</div>
+            <table id="tabelaItens">
+                <thead>
+                    <tr>
+                        <th>Cód/Produto</th>
+                        <th>Qtd</th>
+                        <th>Vl. Unit</th>
+                        <th>Total</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <div class="total-container">
+                🖨️ Total Geral: R$ <span id="totalGeral">0,00</span>
+            </div>
+        </div>
+
+        <!-- Status -->
+        <div class="section-card">
+            <div class="section-title">Status 🚚</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Selecione opção de Status:</label>
+                    <select id="statusSelect">
+                        <option value="Aguardando pedido">Aguardando pedido</option>
+                        <option value="Pedido realizado">Pedido realizado</option>
+                        <option value="Conferir estoque / matéria prima">Conferir estoque / matéria prima</option>
+                        <option value="Enviado para artesão">Enviado para artesão</option>
+                        <option value="Finalizado">Finalizado</option>
+                        <option value="A caminho">A caminho</option>
+                        <option value="Entregue">Entregue</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Atual:</label>
+                    <input type="text" id="statusAtualDisplay" value="Aguardando pedido" readonly style="background: #efebe9; font-weight: bold;">
+                </div>
+            </div>
+        </div>
+
+        <!-- Botões de Ação -->
+        <div class="section-card">
+            <div class="actions-row">
+                <button type="button" class="btn btn-salvar" onclick="salvarEncomenda()">Salvar 💾</button>
+                <button type="button" class="btn btn-limpar" onclick="limparFormulario()">Limpar 🧹</button>
+                <button type="button" class="btn btn-excluir" onclick="excluirEncomenda()">Excluir 🗑️</button>
+            </div>
+            <button type="button" class="btn btn-pdf" onclick="window.print()">GERAR RELATÓRIO EM PDF 🖨️</button>
+        </div>
+
+        <!-- WhatsApp -->
+        <div class="section-card">
+            <div class="section-title">Ordem de Serviço para WhatsApp 📱</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>👨‍🔧 Artesão WhatsApp:</label>
+                    <div style="display: flex; gap: 5px;">
+                        <input type="text" id="telArtesao" placeholder="DDD + Número">
+                        <a href="#" id="linkWhatsArtesao" class="btn-whatsapp" onclick="enviarWhatsAppArtesao(event)">📱🚀 Enviar</a>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>🚚 Entregador WhatsApp:</label>
+                    <div style="display: flex; gap: 5px;">
+                        <input type="text" id="telEntregador" placeholder="DDD + Número">
+                        <a href="#" id="linkWhatsEntregador" class="btn-whatsapp" onclick="enviarWhatsAppEntregador(event)">📱🚀 Enviar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Caixa -->
+        <div class="section-card">
+            <div class="section-title">Registrar Venda 🗃️</div>
+            <button type="button" class="btn btn-caixa" onclick="alert('Venda registrada no caixa!')">REGISTRAR VENDA NO CAIXA 💰</button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbw0Okzok1t8uqB8BMWGHYRUHLsmaYR2XayuzoINdcxwTlAziAOCfDTbyp0anRBK1yCf/exec";
+
+        let itensCarrinho = [];
+        let listaProdutosCache = [];
+
+        window.onload = function() {
+            const agora = new Date();
+            const ano = agora.getFullYear();
+            const mes = String(agora.getMonth() + 1).padStart(2, '0');
+            const dia = String(agora.getDate()).padStart(2, '0');
+           
+            document.getElementById('dataAtual').value = `${ano}-${mes}-${dia}`;
+            document.getElementById('horarioAtual').value = `${String(agora.getHours()).padStart(2, '0')}:${String(agora.getMinutes()).padStart(2, '0')}`;
+
+            document.getElementById('statusSelect').addEventListener('change', function() {
+                document.getElementById('statusAtualDisplay').value = this.value;
+            });
+
+            carregarListaProdutosDatalist();
+            carregarListaClientesDatalist();
+        };
+
+        function carregarListaProdutosDatalist() {
+            fetch(`${API_URL}?action=listarProdutos`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.sucesso && data.produtos) {
+                        listaProdutosCache = data.produtos;
+                        const datalist = document.getElementById('listaProdutos');
+                        datalist.innerHTML = '';
+                        data.produtos.forEach(prod => {
+                            const option = document.createElement('option');
+                            option.value = prod.codigo;
+                            datalist.appendChild(option);
+                        });
+                    }
+                })
+                .catch(() => {});
+        }
+
+        function carregarListaClientesDatalist() {
+            fetch(`${API_URL}?action=listarClientes`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.sucesso && data.clientes) {
+                        const datalist = document.getElementById('listaClientes');
+                        datalist.innerHTML = '';
+                        data.clientes.forEach(cli => {
+                            const option = document.createElement('option');
+                            option.value = cli;
+                            datalist.appendChild(option);
+                        });
+                    }
+                })
+                .catch(() => {});
+        }
+
+        document.getElementById('codProduto').addEventListener('input', function(e) {
+            const valorDigitado = e.target.value;
+            const produtoEncontrado = listaProdutosCache.find(p => p.codigo === valorDigitado);
+        
+            if (produtoEncontrado) {
+                document.getElementById('quantEstoque').value = produtoEncontrado.estoque;
+                document.getElementById('valorUnitario').value = produtoEncontrado.valor;
+                document.getElementById('quantVendido').value = 1;
+                calcularTotalItem();
+            }
+        });
+
+        function buscarCep() {
+            let cep = document.getElementById('cep').value.replace(/\D/g, '');
+            if (cep.length === 8) {
+                fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data.erro) {
+                            document.getElementById('rua').value = data.logradouro;
+                            document.getElementById('bairro').value = data.bairro;
+                            document.getElementById('cidade').value = data.localidade;
+                            document.getElementById('numero').focus();
+                        } else {
+                            alert('CEP não encontrado.');
+                        }
+                    });
+            }
+        }
+
+        function buscarProduto() {
+            const cod = document.getElementById('codProduto').value.trim();
+            if (!cod) { alert('Digite o código ou nome do produto.'); return; }
+
+            fetch(`${API_URL}?action=buscarProduto&codigo=${encodeURIComponent(cod)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.sucesso) {
+                        document.getElementById('quantEstoque').value = data.estoque;
+                        document.getElementById('valorUnitario').value = data.valor;
+                        document.getElementById('quantVendido').value = 1;
+                        calcularTotalItem();
+                    } else {
+                        alert('Produto não encontrado na aba Produtos.');
+                    }
+                })
+                .catch(() => alert('Erro ao buscar produto na API.'));
+        }
+
+        function calcularTotalItem() {
+            const valor = parseFloat(document.getElementById('valorUnitario').value) || 0;
+            const qtd = parseInt(document.getElementById('quantVendido').value) || 0;
+            document.getElementById('totalItem').value = (valor * qtd).toFixed(2);
+        }
+
+        function adicionarProdutoTabela() {
+            const cod = document.getElementById('codProduto').value;
+            const qtd = parseInt(document.getElementById('quantVendido').value) || 0;
+            const valor = parseFloat(document.getElementById('valorUnitario').value) || 0;
+            const total = parseFloat(document.getElementById('totalItem').value) || 0;
+
+            if (!cod) { alert('Informe o produto.'); return; }
+
+            itensCarrinho.push({ cod, qtd, valor, total });
+            atualizarTabelaItens();
+
+            document.getElementById('codProduto').value = '';
+            document.getElementById('quantEstoque').value = '';
+            document.getElementById('valorUnitario').value = '';
+            document.getElementById('quantVendido').value = '1';
+            document.getElementById('totalItem').value = '';
+        }
+
+        function atualizarTabelaItens() {
+            const tbody = document.querySelector('#tabelaItens tbody');
+            tbody.innerHTML = '';
+            let totalGeral = 0;
+
+            itensCarrinho.forEach((item, index) => {
+                totalGeral += item.total;
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${item.cod}</td>
+                        <td>${item.qtd}</td>
+                        <td>R$ ${item.valor.toFixed(2)}</td>
+                        <td>R$ ${item.total.toFixed(2)}</td>
+                        <td><button type="button" class="trash-btn" onclick="itensCarrinho.splice(${index}, 1); atualizarTabelaItens();">🗑️</button></td>
+                    </tr>
+                `;
+            });
+            document.getElementById('totalGeral').innerText = totalGeral.toFixed(2);
+        }
+
+        function salvarEncomenda() {
+            if (!confirm('Deseja salvar esta encomenda?')) return;
+            const cliente = document.getElementById('cliente').value;
+            if (!cliente) { alert('Informe o nome do cliente.'); return; }
+
+            const dados = {
+                action: 'salvarEncomenda',
+                cliente: cliente,
+                cep: document.getElementById('cep').value,
+                rua: document.getElementById('rua').value,
+                numero: document.getElementById('numero').value,
+                bairro: document.getElementById('bairro').value,
+                cidade: document.getElementById('cidade').value,
+                tipo: document.getElementById('tipo').value,
+                complemento: document.getElementById('complemento').value,
+                referencia: document.getElementById('referencia').value,
+                dataAtual: document.getElementById('dataAtual').value,
+                horarioAtual: document.getElementById('horarioAtual').value,
+                dataEntrega: document.getElementById('dataEntrega').value,
+                horarioEntrega: document.getElementById('horarioEntrega').value,
+                itens: JSON.stringify(itensCarrinho),
+                totalGeral: document.getElementById('totalGeral').innerText,
+                status: document.getElementById('statusAtualDisplay').value
+            };
+
+            fetch(API_URL, { method: 'POST', body: JSON.stringify(dados) })
+                .then(res => res.json())
+                .then(res => {
+                    if (res.sucesso) {
+                        alert('Salvo com sucesso!');
+                        limparFormulario();
+                        carregarListaClientesDatalist();
+                    } else {
+                        alert('Erro ao salvar.');
+                    }
+                });
+        }
+
+        function consultarEncomenda() {
+            const filtro = document.getElementById('filtroCliente').value.trim();
+            if (!filtro) { alert('Digite ou selecione o nome do cliente.'); return; }
+
+            fetch(`${API_URL}?action=consultar&cliente=${encodeURIComponent(filtro)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.sucesso && data.encomenda) {
+                        const enc = data.encomenda;
+                        document.getElementById('cliente').value = enc.cliente || '';
+                        document.getElementById('cep').value = enc.cep || '';
+                        document.getElementById('rua').value = enc.rua || '';
+                        document.getElementById('numero').value = enc.numero || '';
+                        document.getElementById('bairro').value = enc.bairro || '';
+                        document.getElementById('cidade').value = enc.cidade || '';
+                        document.getElementById('tipo').value = enc.tipo || '';
+                        document.getElementById('complemento').value = enc.complemento || '';
+                        document.getElementById('referencia').value = enc.referencia || '';
+                      
+                        // Data de Entrega (já ajustada para o input type="date")
+                        if (enc.dataEntrega) {
+                            let dataStr = String(enc.dataEntrega).trim();
+                            if (dataStr.includes('/')) {
+                                let partes = dataStr.split('/');
+                                if (partes.length === 3) {
+                                    dataStr = `${partes[2]}-${partes[1]}-${partes[0]}`;
+                                }
+                            }
+                            document.getElementById('dataEntrega').value = dataStr;
+                        } else {
+                            document.getElementById('dataEntrega').value = '';
+                        }
+
+                        // Horário de Entrega
+                        if (enc.horarioEntrega) {
+                            let horaStr = String(enc.horarioEntrega).trim();
+                            if (horaStr.length > 5) {
+                                horaStr = horaStr.substring(0, 5);
+                            }
+                            document.getElementById('horarioEntrega').value = horaStr;
+                        } else {
+                            document.getElementById('horarioEntrega').value = '';
+                        }
+
+                        document.getElementById('statusSelect').value = enc.status || 'Aguardando pedido';
+                        document.getElementById('statusAtualDisplay').value = enc.status || 'Aguardando pedido';
+                      
+                        if (enc.itens) {
+                            try {
+                                itensCarrinho = typeof enc.itens === 'string' ? JSON.parse(enc.itens) : enc.itens;
+                            } catch (e) {
+                                itensCarrinho = [];
+                            }
+                            atualizarTabelaItens();
+                        }
+                        alert('Encomenda carregada com sucesso!');
+                    } else {
+                        alert('Encomenda não encontrada.');
+                    }
+                })
+                .catch(() => alert('Erro ao consultar a API.'));
+        }
+
+        function excluirEncomenda() {
+            if (!confirm('Deseja excluir?')) return;
+            const cliente = document.getElementById('cliente').value;
+            fetch(`${API_URL}?action=excluir&cliente=${encodeURIComponent(cliente)}`)
+                .then(res => res.json())
+                .then(res => {
+                    if (res.sucesso) {
+                        alert('Excluído!');
+                        limparFormulario();
+                        carregarListaClientesDatalist();
+                    }
+                });
+        }
+
+        function limparFormulario() {
+            document.querySelectorAll('input:not(#dataAtual):not(#horarioAtual)').forEach(i => i.value = '');
+            document.getElementById('tipo').selectedIndex = 0;
+            itensCarrinho = [];
+            atualizarTabelaItens();
+        }
+
+        function enviarWhatsAppArtesao(e) {
+            e.preventDefault();
+            const tel = document.getElementById('telArtesao').value;
+            const cliente = document.getElementById('cliente').value;
+            const status = document.getElementById('statusAtualDisplay').value;
+            let itensTexto = itensCarrinho.map(i => `- ${i.cod} (Qtd: ${i.qtd})`).join('%0A');
+            window.open(`https://api.whatsapp.com/send?phone=${tel}&text=*ORDEM DE SERVIÇO*%0ACliente: ${cliente}%0AStatus: ${status}%0A${itensTexto}`, '_blank');
+        }
+
+        function enviarWhatsAppEntregador(e) {
+            e.preventDefault();
+            const tel = document.getElementById('telEntregador').value;
+            const cliente = document.getElementById('cliente').value;
+            const rua = document.getElementById('rua').value;
+            const num = document.getElementById('numero').value;
+            const bairro = document.getElementById('bairro').value;
+            window.open(`https://api.whatsapp.com/send?phone=${tel}&text=*ENTREGA*%0ACliente: ${cliente}%0AEndereço: ${rua}, ${num} - ${bairro}`, '_blank');
+        }
+    </script>
+</body>
+</html>
+
+ 
