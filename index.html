@@ -170,6 +170,84 @@
             cursor: pointer;
             font-size: 16px;
         }
+
+        /* COMPROVANTE OCULTO NA TELA NORMAL */
+        #comprovanteImpressao {
+            display: none;
+        }
+
+        /* CONFIGURAÇÃO DE IMPRESSÃO (RECIBO PROFISSIONAL EM 1 PÁGINA) */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #comprovanteImpressao, #comprovanteImpressao * {
+                visibility: visible;
+            }
+            #comprovanteImpressao {
+                display: block;
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 20px;
+                background: #fff;
+                color: #000;
+            }
+            .recibo-header {
+                text-align: center;
+                border-bottom: 2px solid #2c1d11;
+                padding-bottom: 10px;
+                margin-bottom: 15px;
+            }
+            .recibo-header h2 {
+                font-size: 20px;
+                color: #2c1d11;
+                text-transform: uppercase;
+            }
+            .recibo-section {
+                margin-bottom: 12px;
+                font-size: 13px;
+                line-height: 1.5;
+            }
+            .recibo-section strong {
+                color: #2c1d11;
+            }
+            .recibo-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 10px;
+                margin-bottom: 15px;
+            }
+            .recibo-table th, .recibo-table td {
+                border: 1px solid #999;
+                padding: 6px;
+                font-size: 12px;
+                text-align: left;
+            }
+            .recibo-table th {
+                background-color: #2c1d11 !important;
+                color: white !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .recibo-total {
+                text-align: right;
+                font-size: 15px;
+                font-weight: bold;
+                margin-top: 10px;
+                border-top: 1px solid #2c1d11;
+                padding-top: 8px;
+            }
+            .recibo-footer {
+                text-align: center;
+                margin-top: 30px;
+                font-size: 11px;
+                color: #666;
+                border-top: 1px dashed #ccc;
+                padding-top: 10px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -194,7 +272,7 @@
         <!-- Informações do Cliente -->
         <div class="section-card">
             <div class="section-title">Informações do Cliente 🙋‍♂️</div>
-      
+    
             <div class="form-group">
                 <label>Cliente:</label>
                 <input type="text" id="cliente" placeholder="Nome completo do cliente">
@@ -365,7 +443,7 @@
                 <button type="button" class="btn btn-limpar" onclick="limparFormulario()">Limpar 🧹</button>
                 <button type="button" class="btn btn-excluir" onclick="excluirEncomenda()">Excluir 🗑️</button>
             </div>
-            <button type="button" class="btn btn-pdf" onclick="window.print()">GERAR RELATÓRIO EM PDF 🖨️</button>
+            <button type="button" class="btn btn-pdf" onclick="prepararEImprimir()">GERAR RELATÓRIO EM PDF 🖨️</button>
         </div>
 
         <!-- WhatsApp -->
@@ -396,6 +474,47 @@
         </div>
     </div>
 
+    <!-- ESTRUTURA DO COMPROVANTE PARA IMPRESSÃO -->
+    <div id="comprovanteImpressao">
+        <div class="recibo-header">
+            <h2>📦 Comprovante de Encomenda 📦</h2>
+            <p>Data do Pedido: <span id="compDataAtual"></span> às <span id="compHorarioAtual"></span></p>
+        </div>
+       
+        <div class="recibo-section">
+            <strong>Cliente:</strong> <span id="compCliente"></span><br>
+            <strong>Endereço:</strong> <span id="compTipo"></span> <span id="compRua"></span>, Nº <span id="compNumero"></span> - <span id="compBairro"></span>, <span id="compCidade"></span><br>
+            <strong>Complemento:</strong> <span id="compComplemento"></span> | <strong>Referência:</strong> <span id="compReferencia"></span><br>
+            <strong>Previsão de Entrega:</strong> <span id="compDataEntrega"></span> às <span id="compHorarioEntrega"></span><br>
+            <strong>Status Atual:</strong> <span id="compStatus"></span>
+        </div>
+
+        <div class="recibo-section">
+            <strong>Itens da Encomenda:</strong>
+            <table class="recibo-table">
+                <thead>
+                    <tr>
+                        <th>Produto / Código</th>
+                        <th>Qtd</th>
+                        <th>Vl. Unitário</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="compTabelaItens">
+                    <!-- Preenchido via script -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="recibo-total">
+            Total Geral: R$ <span id="compTotalGeral">0,00</span>
+        </div>
+
+        <div class="recibo-footer">
+            Documento gerado eletronicamente - Controle de Encomendas
+        </div>
+    </div>
+
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbw0Okzok1t8uqB8BMWGHYRUHLsmaYR2XayuzoINdcxwTlAziAOCfDTbyp0anRBK1yCf/exec";
 
@@ -407,7 +526,7 @@
             const ano = agora.getFullYear();
             const mes = String(agora.getMonth() + 1).padStart(2, '0');
             const dia = String(agora.getDate()).padStart(2, '0');
-           
+          
             document.getElementById('dataAtual').value = `${ano}-${mes}-${dia}`;
             document.getElementById('horarioAtual').value = `${String(agora.getHours()).padStart(2, '0')}:${String(agora.getMinutes()).padStart(2, '0')}`;
 
@@ -457,7 +576,7 @@
         document.getElementById('codProduto').addEventListener('input', function(e) {
             const valorDigitado = e.target.value;
             const produtoEncontrado = listaProdutosCache.find(p => p.codigo === valorDigitado);
-        
+      
             if (produtoEncontrado) {
                 document.getElementById('quantEstoque').value = produtoEncontrado.estoque;
                 document.getElementById('valorUnitario').value = produtoEncontrado.valor;
@@ -547,6 +666,43 @@
             document.getElementById('totalGeral').innerText = totalGeral.toFixed(2);
         }
 
+        function prepararEImprimir() {
+            // Preenche os dados do recibo com o que está digitado no formulário antes de abrir o print
+            document.getElementById('compCliente').innerText = document.getElementById('cliente').value || '-';
+            document.getElementById('compTipo').innerText = document.getElementById('tipo').value ? `(${document.getElementById('tipo').value})` : '';
+            document.getElementById('compRua').innerText = document.getElementById('rua').value || '-';
+            document.getElementById('compNumero').innerText = document.getElementById('numero').value || 'S/N';
+            document.getElementById('compBairro').innerText = document.getElementById('bairro').value || '-';
+            document.getElementById('compCidade').innerText = document.getElementById('cidade').value || '-';
+            document.getElementById('compComplemento').innerText = document.getElementById('complemento').value || '-';
+            document.getElementById('compReferencia').innerText = document.getElementById('referencia').value || '-';
+            document.getElementById('compDataAtual').innerText = document.getElementById('dataAtual').value || '-';
+            document.getElementById('compHorarioAtual').innerText = document.getElementById('horarioAtual').value || '-';
+            document.getElementById('compDataEntrega').innerText = document.getElementById('dataEntrega').value || 'A combinar';
+            document.getElementById('compHorarioEntrega').innerText = document.getElementById('horarioEntrega').value || '';
+            document.getElementById('compStatus').innerText = document.getElementById('statusAtualDisplay').value || '-';
+            document.getElementById('compTotalGeral').innerText = document.getElementById('totalGeral').innerText;
+
+            const tbodyComp = document.getElementById('compTabelaItens');
+            tbodyComp.innerHTML = '';
+            if (itensCarrinho.length === 0) {
+                tbodyComp.innerHTML = `<tr><td colspan="4" style="text-align:center;">Nenhum item adicionado</td></tr>`;
+            } else {
+                itensCarrinho.forEach(item => {
+                    tbodyComp.innerHTML += `
+                        <tr>
+                            <td>${item.cod}</td>
+                            <td>${item.qtd}</td>
+                            <td>R$ ${item.valor.toFixed(2)}</td>
+                            <td>R$ ${item.total.toFixed(2)}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            window.print();
+        }
+
         function salvarEncomenda() {
             if (!confirm('Deseja salvar esta encomenda?')) return;
             const cliente = document.getElementById('cliente').value;
@@ -603,8 +759,7 @@
                         document.getElementById('tipo').value = enc.tipo || '';
                         document.getElementById('complemento').value = enc.complemento || '';
                         document.getElementById('referencia').value = enc.referencia || '';
-                      
-                        // Data de Entrega (já ajustada para o input type="date")
+                    
                         if (enc.dataEntrega) {
                             let dataStr = String(enc.dataEntrega).trim();
                             if (dataStr.includes('/')) {
@@ -618,7 +773,6 @@
                             document.getElementById('dataEntrega').value = '';
                         }
 
-                        // Horário de Entrega
                         if (enc.horarioEntrega) {
                             let horaStr = String(enc.horarioEntrega).trim();
                             if (horaStr.length > 5) {
@@ -631,7 +785,7 @@
 
                         document.getElementById('statusSelect').value = enc.status || 'Aguardando pedido';
                         document.getElementById('statusAtualDisplay').value = enc.status || 'Aguardando pedido';
-                      
+                    
                         if (enc.itens) {
                             try {
                                 itensCarrinho = typeof enc.itens === 'string' ? JSON.parse(enc.itens) : enc.itens;
